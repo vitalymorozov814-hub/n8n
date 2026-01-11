@@ -1,0 +1,46 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: n8n
+      POSTGRES_PASSWORD: CHANGE_ME_STRONG
+      POSTGRES_DB: n8n
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  n8n:
+    image: n8nio/n8n:latest
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    ports:
+      - "5678:5678"
+    environment:
+      - NODE_ENV=production
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=postgres
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=n8n
+      - DB_POSTGRESDB_USER=n8n
+      - DB_POSTGRESDB_PASSWORD=CHANGE_ME_STRONG
+
+      # IMPORTANT: set these correctly for webhooks
+      - N8N_HOST=YOUR_DOMAIN_OR_IP
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - WEBHOOK_URL=http://YOUR_DOMAIN_OR_IP:5678/
+
+      # Timezone
+      - TZ=Asia/Jerusalem
+      - GENERIC_TIMEZONE=Asia/Jerusalem
+
+      # IMPORTANT: keep this safe forever
+      - N8N_ENCRYPTION_KEY=PASTE_A_RANDOM_LONG_SECRET_HERE
+
+    volumes:
+      - n8n_data:/home/node/.n8n
+
+volumes:
+  postgres_data:
+  n8n_data:
